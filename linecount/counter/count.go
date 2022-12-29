@@ -3,6 +3,7 @@ package counter
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 )
@@ -34,10 +35,11 @@ func OldLines() int {
 // Using functional options
 
 type Counter struct {
-	input   io.Reader
+	input   io.ReadCloser
 	output  io.Writer
 	matcher func(string, string) bool
 	needle  string
+	args    []string
 }
 
 type option func(*Counter) error
@@ -62,7 +64,12 @@ func WithInput(input io.Reader) option {
 		if input == nil {
 			return errors.New("nil input reader")
 		}
-		c.input = input
+		var inputCloser io.ReadCloser
+		var ok bool
+		if inputCloser, ok = input.(io.ReadCloser); !ok {
+			inputCloser = io.NopCloser(input)
+		}
+		c.input = inputCloser
 		return nil
 	}
 }
@@ -86,6 +93,20 @@ func WithMatcher(matcher func(string, string) bool, needle string) option {
 	}
 }
 
+func WithInputFromArgs(args []string) option {
+	return func(c *Counter) error {
+		if len(args) == 0 {
+			return nil
+		}
+		f, err := os.Open(args[0])
+		if err != nil {
+			return err
+		}
+		c.input = f
+		return nil
+	}
+}
+
 func (c Counter) Lines() int {
 	lines := 0
 	scanner := bufio.NewScanner(c.input)
@@ -94,13 +115,15 @@ func (c Counter) Lines() int {
 			lines += 1
 		}
 	}
+	c.input.Close()
 	return lines
 }
 
 func Lines() int {
-	c, err := NewCounter()
+	c, err := NewCounter(WithInputFromArgs(os.Args[1:]))
 	if err != nil {
-		panic("internal error")
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 	return c.Lines()
 }

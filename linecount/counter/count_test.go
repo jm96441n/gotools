@@ -37,3 +37,36 @@ func TestLinesWithFunctionalOptionsCountsLines(t *testing.T) {
 		t.Errorf("Got %q, want %q", got, want)
 	}
 }
+
+func TestWithInputFromArgs(t *testing.T) {
+	t.Parallel()
+	args := []string{"testdata/three_lines.txt"}
+	c, err := counter.NewCounter(counter.WithInputFromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+
+	want := 3
+	got := c.Lines()
+
+	if want != got {
+		t.Errorf("Got %d, want %d", got, want)
+	}
+}
+
+func TestWithInputFromArgsEmpty(t *testing.T) {
+	t.Parallel()
+	args := []string{}
+	inputBuf := bytes.NewBufferString("1\n2\n3")
+	c, err := counter.NewCounter(counter.WithInput(inputBuf), counter.WithInputFromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+
+	want := 3
+	got := c.Lines()
+
+	if want != got {
+		t.Errorf("Got %d, want %d", got, want)
+	}
+}
