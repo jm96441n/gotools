@@ -35,18 +35,17 @@ func OldLines() int {
 // Using functional options
 
 type Counter struct {
-	input   io.ReadCloser
+	input   []io.ReadCloser
 	output  io.Writer
 	matcher func(string, string) bool
 	needle  string
-	args    []string
 }
 
 type option func(*Counter) error
 
 func NewCounter(opts ...option) (Counter, error) {
 	c := Counter{
-		input:   os.Stdin,
+		input:   []io.ReadCloser{io.NopCloser(os.Stdin)},
 		output:  os.Stdout,
 		matcher: func(_, _ string) bool { return true },
 	}
@@ -69,7 +68,7 @@ func WithInput(input io.Reader) option {
 		if inputCloser, ok = input.(io.ReadCloser); !ok {
 			inputCloser = io.NopCloser(input)
 		}
-		c.input = inputCloser
+		c.input = []io.ReadCloser{inputCloser}
 		return nil
 	}
 }
@@ -98,24 +97,30 @@ func WithInputFromArgs(args []string) option {
 		if len(args) == 0 {
 			return nil
 		}
-		f, err := os.Open(args[0])
-		if err != nil {
-			return err
+		inputs := make([]io.ReadCloser, len(args))
+		for idx, fileName := range args {
+			f, err := os.Open(fileName)
+			if err != nil {
+				return err
+			}
+			inputs[idx] = f
 		}
-		c.input = f
+		c.input = inputs
 		return nil
 	}
 }
 
 func (c Counter) Lines() int {
 	lines := 0
-	scanner := bufio.NewScanner(c.input)
-	for scanner.Scan() {
-		if c.matcher(scanner.Text(), "hello") {
-			lines += 1
+	for _, in := range c.input {
+		scanner := bufio.NewScanner(in)
+		for scanner.Scan() {
+			if c.matcher(scanner.Text(), "hello") {
+				lines += 1
+			}
 		}
+		in.Close()
 	}
-	c.input.Close()
 	return lines
 }
 

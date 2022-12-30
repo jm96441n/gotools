@@ -70,3 +70,19 @@ func TestWithInputFromArgsEmpty(t *testing.T) {
 		t.Errorf("Got %d, want %d", got, want)
 	}
 }
+
+func TestWithInputFromArgsMultiple(t *testing.T) {
+	t.Parallel()
+	args := []string{"testdata/three_lines.txt", "testdata/two_lines.txt"}
+	c, err := counter.NewCounter(counter.WithInputFromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+
+	want := 5
+	got := c.Lines()
+
+	if want != got {
+		t.Errorf("Got %d, want %d", got, want)
+	}
+}
