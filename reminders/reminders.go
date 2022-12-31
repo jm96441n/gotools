@@ -24,12 +24,6 @@ var (
 
 func NewReminder(opts ...option) (Reminder, error) {
 	storage, err := os.OpenFile("reminders.txt", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
-	if len(os.Args) == 1 {
-		_, err := storage.Seek(0, io.SeekStart)
-		if err != nil {
-			return Reminder{}, err
-		}
-	}
 	if err != nil {
 		return Reminder{}, err
 	}
