@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/jm96441n/gotools/linecount/counter"
+	"github.com/jm96441n/gotools/count/counter"
 )
 
 func TestLinesCountsTheLinesFromTheInput(t *testing.T) {

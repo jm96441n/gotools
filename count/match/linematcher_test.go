@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/jm96441n/gotools/linecount/match"
+	"github.com/jm96441n/gotools/count/match"
 )
 
 func TestMatcherReturnsLinesContainingMatchingString(t *testing.T) {

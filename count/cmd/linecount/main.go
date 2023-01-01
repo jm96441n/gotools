@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/jm96441n/gotools/linecount/counter"
+	"github.com/jm96441n/gotools/count/counter"
 )
 
 func main() {
