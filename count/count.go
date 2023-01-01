@@ -1,4 +1,4 @@
-package counter
+package count
 
 import (
 	"bufio"
@@ -7,30 +7,6 @@ import (
 	"io"
 	"os"
 )
-
-// Original
-type LineCounter struct {
-	Input io.Reader
-}
-
-func NewLineCounter() *LineCounter {
-	return &LineCounter{
-		Input: os.Stdin,
-	}
-}
-
-func (l *LineCounter) Lines() int {
-	lines := 0
-	scanner := bufio.NewScanner(l.Input)
-	for scanner.Scan() {
-		lines += 1
-	}
-	return lines
-}
-
-func OldLines() int {
-	return NewLineCounter().Lines()
-}
 
 // Using functional options
 
@@ -115,7 +91,7 @@ func (c Counter) Lines() int {
 	for _, in := range c.input {
 		scanner := bufio.NewScanner(in)
 		for scanner.Scan() {
-			if c.matcher(scanner.Text(), "hello") {
+			if c.matcher(scanner.Text(), c.needle) {
 				lines += 1
 			}
 		}
@@ -131,4 +107,49 @@ func Lines() int {
 		os.Exit(1)
 	}
 	return c.Lines()
+}
+
+func (c Counter) Words() int {
+	words := 0
+	scanner := bufio.NewScanner(c.input[0])
+	scanner.Split(bufio.ScanWords)
+	for scanner.Scan() {
+		words += 1
+	}
+	return words
+}
+
+func Words() int {
+	c, err := NewCounter(WithInputFromArgs(os.Args[1:]))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+
+	}
+
+	return c.Words()
+}
+
+// Original
+type LineCounter struct {
+	Input io.Reader
+}
+
+func NewLineCounter() *LineCounter {
+	return &LineCounter{
+		Input: os.Stdin,
+	}
+}
+
+func (l *LineCounter) Lines() int {
+	lines := 0
+	scanner := bufio.NewScanner(l.Input)
+	for scanner.Scan() {
+		lines += 1
+	}
+	return lines
+}
+
+func OldLines() int {
+	return NewLineCounter().Lines()
 }

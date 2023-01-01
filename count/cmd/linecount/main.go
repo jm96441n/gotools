@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/jm96441n/gotools/count/counter"
+	"github.com/jm96441n/gotools/count"
 )
 
 func main() {
-	fmt.Println(counter.Lines())
+	fmt.Println(count.Lines())
 }
