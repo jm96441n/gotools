@@ -43,7 +43,7 @@ func TestLinesWithFunctionalOptionsCountsLines(t *testing.T) {
 func TestWithInputFromArgs(t *testing.T) {
 	t.Parallel()
 	args := []string{"testdata/three_lines.txt"}
-	c, err := count.NewCounter(count.WithInputFromArgs(args))
+	c, err := count.NewCounter(count.FromArgs(args))
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,11 +56,27 @@ func TestWithInputFromArgs(t *testing.T) {
 	}
 }
 
+func TestWordCount(t *testing.T) {
+	t.Parallel()
+	args := []string{"-w", "testdata/three_lines.txt"}
+	c, err := count.NewCounter(count.FromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+
+	want := 6
+	got := c.Words()
+
+	if want != got {
+		t.Errorf("Got %d, want %d", got, want)
+	}
+}
+
 func TestWithInputFromArgsEmpty(t *testing.T) {
 	t.Parallel()
 	args := []string{}
 	inputBuf := bytes.NewBufferString("1\n2\n3")
-	c, err := count.NewCounter(count.WithInput(inputBuf), count.WithInputFromArgs(args))
+	c, err := count.NewCounter(count.WithInput(inputBuf), count.FromArgs(args))
 	if err != nil {
 		t.Error(err)
 	}
@@ -76,7 +92,7 @@ func TestWithInputFromArgsEmpty(t *testing.T) {
 func TestWithInputFromArgsMultiple(t *testing.T) {
 	t.Parallel()
 	args := []string{"testdata/three_lines.txt", "testdata/two_lines.txt"}
-	c, err := count.NewCounter(count.WithInputFromArgs(args))
+	c, err := count.NewCounter(count.FromArgs(args))
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,6 +102,15 @@ func TestWithInputFromArgsMultiple(t *testing.T) {
 
 	if want != got {
 		t.Errorf("Got %d, want %d", got, want)
+	}
+}
+
+func TestFromArgsErrorsOnBogusFlag(t *testing.T) {
+	t.Parallel()
+	args := []string{"-bogus"}
+	_, err := count.NewCounter(count.WithOutput(io.Discard), count.FromArgs(args))
+	if err == nil {
+		t.Error("want error on bogus flag, got nil")
 	}
 }
 

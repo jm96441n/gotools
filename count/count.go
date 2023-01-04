@@ -3,6 +3,7 @@ package count
 import (
 	"bufio"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -11,10 +12,11 @@ import (
 // Using functional options
 
 type Counter struct {
-	input   []io.ReadCloser
-	output  io.Writer
-	matcher func(string, string) bool
-	needle  string
+	input      []io.ReadCloser
+	output     io.Writer
+	matcher    func(string, string) bool
+	needle     string
+	countWords bool
 }
 
 type option func(*Counter) error
@@ -68,11 +70,20 @@ func WithMatcher(matcher func(string, string) bool, needle string) option {
 	}
 }
 
-func WithInputFromArgs(args []string) option {
+func FromArgs(args []string) option {
 	return func(c *Counter) error {
 		if len(args) == 0 {
 			return nil
 		}
+		fset := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+		wordCount := fset.Bool("w", false, "Count words instead of lines")
+		fset.SetOutput(c.output)
+		err := fset.Parse(args)
+		if err != nil {
+			return err
+		}
+		c.countWords = *wordCount
+		args = fset.Args()
 		inputs := make([]io.ReadCloser, len(args))
 		for idx, fileName := range args {
 			f, err := os.Open(fileName)
@@ -101,7 +112,7 @@ func (c Counter) Lines() int {
 }
 
 func Lines() int {
-	c, err := NewCounter(WithInputFromArgs(os.Args[1:]))
+	c, err := NewCounter(FromArgs(os.Args[1:]))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -120,7 +131,7 @@ func (c Counter) Words() int {
 }
 
 func Words() int {
-	c, err := NewCounter(WithInputFromArgs(os.Args[1:]))
+	c, err := NewCounter(FromArgs(os.Args[1:]))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
@@ -128,6 +139,18 @@ func Words() int {
 	}
 
 	return c.Words()
+}
+
+func RunCLI() int {
+	counter, err := NewCounter(FromArgs(os.Args[1:]))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	if counter.countWords {
+		return counter.Words()
+	}
+	return counter.Lines()
 }
 
 // Original
