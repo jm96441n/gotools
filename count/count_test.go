@@ -18,7 +18,7 @@ func TestLinesCountsTheLinesFromTheInput(t *testing.T) {
 	}
 
 	got := c.Lines()
-	want := 3
+	want := "3"
 	if got != want {
 		t.Errorf("Got %q, want %q", got, want)
 	}
@@ -34,7 +34,7 @@ func TestLinesWithFunctionalOptionsCountsLines(t *testing.T) {
 	}
 
 	got := c.Lines()
-	want := 3
+	want := "3"
 	if got != want {
 		t.Errorf("Got %q, want %q", got, want)
 	}
@@ -48,11 +48,11 @@ func TestWithInputFromArgs(t *testing.T) {
 		t.Error(err)
 	}
 
-	want := 3
+	want := "3"
 	got := c.Lines()
 
 	if want != got {
-		t.Errorf("Got %d, want %d", got, want)
+		t.Errorf("Got %q, want %q", got, want)
 	}
 }
 
@@ -64,11 +64,11 @@ func TestWordCount(t *testing.T) {
 		t.Error(err)
 	}
 
-	want := 6
+	want := "6"
 	got := c.Words()
 
 	if want != got {
-		t.Errorf("Got %d, want %d", got, want)
+		t.Errorf("Got %q, want %q", got, want)
 	}
 }
 
@@ -81,11 +81,11 @@ func TestWithInputFromArgsEmpty(t *testing.T) {
 		t.Error(err)
 	}
 
-	want := 3
+	want := "3"
 	got := c.Lines()
 
 	if want != got {
-		t.Errorf("Got %d, want %d", got, want)
+		t.Errorf("Got %q, want %q", got, want)
 	}
 }
 
@@ -97,11 +97,11 @@ func TestWithInputFromArgsMultiple(t *testing.T) {
 		t.Error(err)
 	}
 
-	want := 5
+	want := "5"
 	got := c.Lines()
 
 	if want != got {
-		t.Errorf("Got %d, want %d", got, want)
+		t.Errorf("Got %q, want %q", got, want)
 	}
 }
 
@@ -123,8 +123,38 @@ func TestWordsCountsTheWordsFromTheInput(t *testing.T) {
 	}
 
 	got := c.Words()
-	want := 6
+	want := "6"
 	if got != want {
-		t.Errorf("Got %d, want %d", got, want)
+		t.Errorf("Got %q, want %q", got, want)
+	}
+}
+
+func TestVerboseLinesOutput(t *testing.T) {
+	t.Parallel()
+	fakeTerminal := bytes.NewBuffer([]byte{})
+	args := []string{"-v", "testdata/three_lines.txt"}
+	c, err := count.NewCounter(count.WithOutput(fakeTerminal), count.FromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+	got := c.Lines()
+	want := "3 lines"
+	if got != want {
+		t.Errorf("Got %q, want %q", got, want)
+	}
+}
+
+func TestVerboseWordsOutput(t *testing.T) {
+	t.Parallel()
+	fakeTerminal := bytes.NewBuffer([]byte{})
+	args := []string{"-w", "-v", "testdata/three_lines.txt"}
+	c, err := count.NewCounter(count.WithOutput(fakeTerminal), count.FromArgs(args))
+	if err != nil {
+		t.Error(err)
+	}
+	got := c.Words()
+	want := "6 words"
+	if got != want {
+		t.Errorf("Got %q, want %q", got, want)
 	}
 }

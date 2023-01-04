@@ -17,6 +17,7 @@ type Counter struct {
 	matcher    func(string, string) bool
 	needle     string
 	countWords bool
+	verbose    bool
 }
 
 type option func(*Counter) error
@@ -77,12 +78,14 @@ func FromArgs(args []string) option {
 		}
 		fset := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 		wordCount := fset.Bool("w", false, "Count words instead of lines")
+		verbose := fset.Bool("v", false, "verbose output")
 		fset.SetOutput(c.output)
 		err := fset.Parse(args)
 		if err != nil {
 			return err
 		}
 		c.countWords = *wordCount
+		c.verbose = *verbose
 		args = fset.Args()
 		inputs := make([]io.ReadCloser, len(args))
 		for idx, fileName := range args {
@@ -97,7 +100,7 @@ func FromArgs(args []string) option {
 	}
 }
 
-func (c Counter) Lines() int {
+func (c Counter) Lines() string {
 	lines := 0
 	for _, in := range c.input {
 		scanner := bufio.NewScanner(in)
@@ -108,10 +111,13 @@ func (c Counter) Lines() int {
 		}
 		in.Close()
 	}
-	return lines
+	if c.verbose {
+		return fmt.Sprintf("%d lines", lines)
+	}
+	return fmt.Sprintf("%d", lines)
 }
 
-func Lines() int {
+func Lines() string {
 	c, err := NewCounter(FromArgs(os.Args[1:]))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -120,17 +126,20 @@ func Lines() int {
 	return c.Lines()
 }
 
-func (c Counter) Words() int {
+func (c Counter) Words() string {
 	words := 0
 	scanner := bufio.NewScanner(c.input[0])
 	scanner.Split(bufio.ScanWords)
 	for scanner.Scan() {
 		words += 1
 	}
-	return words
+	if c.verbose {
+		return fmt.Sprintf("%d words", words)
+	}
+	return fmt.Sprintf("%d", words)
 }
 
-func Words() int {
+func Words() string {
 	c, err := NewCounter(FromArgs(os.Args[1:]))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -141,7 +150,7 @@ func Words() int {
 	return c.Words()
 }
 
-func RunCLI() int {
+func RunCLI() string {
 	counter, err := NewCounter(FromArgs(os.Args[1:]))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
